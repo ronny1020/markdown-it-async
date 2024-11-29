@@ -54,6 +54,7 @@ export class MarkdownItAsync extends MarkdownIt {
         throw new Error(`Unknown highlight placeholder id: ${id}`)
       const [promise, _str, lang, _attrs] = this.map.get(id)!
       const result = await promise || ''
+      this.map.delete(id)
       if (result.startsWith('<pre'))
         return result
       else
