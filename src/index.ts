@@ -1,6 +1,12 @@
 import type { Options, PresetName } from 'markdown-it'
 import MarkdownIt from 'markdown-it'
 
+export type {
+  PluginSimple,
+  PluginWithOptions,
+  PluginWithParams,
+} from 'markdown-it'
+
 export interface MarkdownItAsyncOptions extends Omit<Options, 'highlight'> {
   /**
    * Highlighter function for fenced code blocks.
@@ -11,6 +17,8 @@ export interface MarkdownItAsyncOptions extends Omit<Options, 'highlight'> {
    */
   highlight?: ((str: string, lang: string, attrs: string) => string | Promise<string>) | null | undefined
 }
+
+export type { MarkdownItAsyncOptions as Options }
 
 const placeholder = (id: string): string => `<pre>::markdown-it-async::${id}::</pre>`
 const placeholderRe = /<pre>::markdown-it-async::(\w+)::<\/pre>/g
