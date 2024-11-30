@@ -43,12 +43,8 @@ export class MarkdownItAsync extends MarkdownIt {
     this.map = map
   }
 
-  render(_src: string, _env?: any): string {
-    throw new Error('Use `.renderAsync` instead')
-  }
-
   async renderAsync(src: string, env?: any): Promise<string> {
-    const result = super.render(src, env)
+    const result = this.render(src, env)
     return replaceAsync(result, placeholderRe, async (match, id) => {
       if (!this.map.has(id))
         throw new Error(`Unknown highlight placeholder id: ${id}`)
