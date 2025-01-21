@@ -1,11 +1,9 @@
 import type { Options, PresetName } from 'markdown-it'
 import MarkdownIt from 'markdown-it'
 
-export type {
-  PluginSimple,
-  PluginWithOptions,
-  PluginWithParams,
-} from 'markdown-it'
+export type PluginSimple = (md: MarkdownItAsync) => void
+export type PluginWithOptions<T = any> = (md: MarkdownItAsync, options?: T) => void
+export type PluginWithParams = (md: MarkdownItAsync, ...params: any[]) => void
 
 export interface MarkdownItAsyncOptions extends Omit<Options, 'highlight'> {
   /**
@@ -43,7 +41,14 @@ export class MarkdownItAsync extends MarkdownIt {
     this.map = map
   }
 
+  use(plugin: PluginSimple): this
+  use<T = any>(plugin: PluginWithOptions<T>, options?: T): this
+  use(plugin: PluginWithParams, ...params: any[]): this {
+    return super.use(plugin as any, ...params)
+  }
+
   async renderAsync(src: string, env?: any): Promise<string> {
+    this.options.highlight = wrapHightlight(this.options.highlight, this.map)
     const result = this.render(src, env)
     return replaceAsync(result, placeholderRe, async (match, id) => {
       if (!this.map.has(id))
@@ -91,11 +96,18 @@ export function replaceAsync(string: string, searchValue: RegExp, replacer: (...
   }
 }
 
+type NotNull<T> = T extends null | undefined ? never : T
+
+const wrappedSet = new WeakSet<NotNull<Options['highlight']>>()
+
 function wrapHightlight(highlight: MarkdownItAsyncOptions['highlight'], map: MarkdownItASyncPlaceholderMap): Options['highlight'] {
   if (!highlight)
     return undefined
 
-  return (str, lang, attrs) => {
+  if (wrappedSet.has(highlight as any))
+    return highlight as any
+
+  const wrapped: NotNull<Options['highlight']> = (str, lang, attrs) => {
     const promise = highlight(str, lang, attrs)
     if (typeof promise === 'string')
       return promise
@@ -103,6 +115,9 @@ function wrapHightlight(highlight: MarkdownItAsyncOptions['highlight'], map: Mar
     map.set(id, [promise, str, lang, attrs])
     return placeholder(id)
   }
+
+  wrappedSet.add(wrapped)
+  return wrapped
 }
 
 export default createMarkdownItAsync
