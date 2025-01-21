@@ -44,7 +44,7 @@ describe('markdown-it-async', async () => {
     const mda = createMarkdownItAsync()
 
     mda.use((md) => {
-      // @ts-expect-error cast, not yet have a solution to override this type
+      // @ts-expect-error cast, patched in dist
       md.options.highlight = async (str, lang) => {
         return await codeToHtml(str, {
           lang,

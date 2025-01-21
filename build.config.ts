@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import { glob } from 'tinyglobby'
 import { defineBuildConfig } from 'unbuild'
 
 export default defineBuildConfig({
@@ -8,5 +10,20 @@ export default defineBuildConfig({
   clean: true,
   rollup: {
     emitCJS: true,
+  },
+  hooks: {
+    'build:done': async () => {
+      for (const file of await glob('./dist/*.d.{cts,mts,ts}')) {
+        const content = await fs.readFile(file, 'utf-8')
+        // Override `options` type on dist dts only
+        const newContent = content.replace(
+          'class MarkdownItAsync extends MarkdownIt {',
+          'class MarkdownItAsync extends MarkdownIt {\n    options: MarkdownItAsyncOptions',
+        )
+        if (content === newContent)
+          throw new Error(`Failed to replace for ${file}`)
+        await fs.writeFile(file, newContent, 'utf-8')
+      }
+    },
   },
 })
