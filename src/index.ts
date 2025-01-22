@@ -42,6 +42,7 @@ export type MarkdownItAsyncPlaceholderMap = Map<string, [promise: Promise<string
 
 export class MarkdownItAsync extends MarkdownIt {
   placeholderMap: MarkdownItAsyncPlaceholderMap
+  private disableWarn = false
 
   constructor(presetName: PresetName, options?: MarkdownItAsyncOptions)
   constructor(options?: MarkdownItAsyncOptions)
@@ -66,7 +67,7 @@ export class MarkdownItAsync extends MarkdownIt {
   }
 
   render(src: string, env?: any): string {
-    if ((this.options as MarkdownItAsyncOptions).warnOnSyncRender) {
+    if ((this.options as MarkdownItAsyncOptions).warnOnSyncRender && !this.disableWarn) {
       console.warn('[markdown-it-async] Please use `md.renderAsync` instead of `md.render`')
     }
     return super.render(src, env)
@@ -74,7 +75,9 @@ export class MarkdownItAsync extends MarkdownIt {
 
   async renderAsync(src: string, env?: any): Promise<string> {
     this.options.highlight = wrapHightlight(this.options.highlight, this.placeholderMap)
-    const result = super.render(src, env)
+    this.disableWarn = true
+    const result = this.render(src, env)
+    this.disableWarn = false
     return replaceAsync(result, placeholderRe, async (match, id) => {
       if (!this.placeholderMap.has(id))
         throw new Error(`Unknown highlight placeholder id: ${id}`)
