@@ -7,9 +7,9 @@ import type {
 } from 'markdown-it'
 import MarkdownIt from 'markdown-it'
 
-export type PluginSimple = ((md: MarkdownItAsync) => void) | MarkdownItPluginSimple
-export type PluginWithOptions<T = any> = ((md: MarkdownItAsync, options?: T) => void) | MarkdownItPluginWithOptions<T>
-export type PluginWithParams = ((md: MarkdownItAsync, ...params: any[]) => void) | MarkdownItPluginWithParams
+export type PluginSimple = ((md: MarkdownItAsync) => void)
+export type PluginWithOptions<T = any> = ((md: MarkdownItAsync, options?: T) => void)
+export type PluginWithParams = ((md: MarkdownItAsync, ...params: any[]) => void)
 
 export interface MarkdownItAsyncOptions extends Omit<Options, 'highlight'> {
   /**
@@ -31,37 +31,42 @@ function randStr(): string {
   return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
 }
 
-export type MarkdownItASyncPlaceholderMap = Map<string, [promise: Promise<string>, str: string, lang: string, attrs: string]>
+export type MarkdownItAsyncPlaceholderMap = Map<string, [promise: Promise<string>, str: string, lang: string, attrs: string]>
 
 export class MarkdownItAsync extends MarkdownIt {
-  map: MarkdownItASyncPlaceholderMap
+  placeholderMap: MarkdownItAsyncPlaceholderMap
 
   constructor(presetName: PresetName, options?: MarkdownItAsyncOptions)
   constructor(options?: MarkdownItAsyncOptions)
   constructor(...args: any[]) {
-    const map: MarkdownItASyncPlaceholderMap = new Map()
+    const map: MarkdownItAsyncPlaceholderMap = new Map()
     const options = args.length === 2 ? args[1] : args[0]
     if (options && 'highlight' in options)
       options.highlight = wrapHightlight(options.highlight, map)
     super(...args as [])
-    this.map = map
+    this.placeholderMap = map
   }
 
   use(plugin: PluginSimple): this
+  use(plugin: MarkdownItPluginSimple): this
   use<T = any>(plugin: PluginWithOptions<T>, options?: T): this
-  use(plugin: PluginWithParams, ...params: any[]): this {
-    return super.use(plugin as any, ...params)
+  use<T = any>(plugin: MarkdownItPluginWithOptions<T>, options?: T): this
+  use(plugin: PluginWithParams, ...params: any[]): this
+  use(plugin: MarkdownItPluginWithParams, ...params: any[]): this
+  // implementation
+  use(plugin: any, ...params: any[]): this {
+    return super.use(plugin, ...params)
   }
 
   async renderAsync(src: string, env?: any): Promise<string> {
-    this.options.highlight = wrapHightlight(this.options.highlight, this.map)
+    this.options.highlight = wrapHightlight(this.options.highlight, this.placeholderMap)
     const result = this.render(src, env)
     return replaceAsync(result, placeholderRe, async (match, id) => {
-      if (!this.map.has(id))
+      if (!this.placeholderMap.has(id))
         throw new Error(`Unknown highlight placeholder id: ${id}`)
-      const [promise, _str, lang, _attrs] = this.map.get(id)!
+      const [promise, _str, lang, _attrs] = this.placeholderMap.get(id)!
       const result = await promise || ''
-      this.map.delete(id)
+      this.placeholderMap.delete(id)
       if (result.startsWith('<pre'))
         return result
       else
@@ -106,7 +111,7 @@ type NotNull<T> = T extends null | undefined ? never : T
 
 const wrappedSet = new WeakSet<NotNull<Options['highlight']>>()
 
-function wrapHightlight(highlight: MarkdownItAsyncOptions['highlight'], map: MarkdownItASyncPlaceholderMap): Options['highlight'] {
+function wrapHightlight(highlight: MarkdownItAsyncOptions['highlight'], map: MarkdownItAsyncPlaceholderMap): Options['highlight'] {
   if (!highlight)
     return undefined
 

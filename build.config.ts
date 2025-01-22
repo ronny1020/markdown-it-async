@@ -18,7 +18,7 @@ export default defineBuildConfig({
         // Override `options` type on dist dts only
         const newContent = content.replace(
           'class MarkdownItAsync extends MarkdownIt {',
-          'class MarkdownItAsync extends MarkdownIt {\n    options: MarkdownItAsyncOptions',
+          'class MarkdownItAsync extends MarkdownIt {\n     // @ts-ignore\n    options: MarkdownItAsyncOptions',
         )
         if (content === newContent)
           throw new Error(`Failed to replace for ${file}`)
