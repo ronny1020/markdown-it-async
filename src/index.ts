@@ -1,9 +1,15 @@
-import type { Options, PresetName } from 'markdown-it'
+import type {
+  PluginSimple as MarkdownItPluginSimple,
+  PluginWithOptions as MarkdownItPluginWithOptions,
+  PluginWithParams as MarkdownItPluginWithParams,
+  Options,
+  PresetName,
+} from 'markdown-it'
 import MarkdownIt from 'markdown-it'
 
-export type PluginSimple = ((md: MarkdownItAsync) => void) | MarkdownIt.PluginSimple
-export type PluginWithOptions<T = any> = ((md: MarkdownItAsync, options?: T) => void) | MarkdownIt.PluginWithOptions<T>
-export type PluginWithParams = ((md: MarkdownItAsync, ...params: any[]) => void) | MarkdownIt.PluginWithParams
+export type PluginSimple = ((md: MarkdownItAsync) => void) | MarkdownItPluginSimple
+export type PluginWithOptions<T = any> = ((md: MarkdownItAsync, options?: T) => void) | MarkdownItPluginWithOptions<T>
+export type PluginWithParams = ((md: MarkdownItAsync, ...params: any[]) => void) | MarkdownItPluginWithParams
 
 export interface MarkdownItAsyncOptions extends Omit<Options, 'highlight'> {
   /**
