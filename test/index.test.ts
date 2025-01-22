@@ -1,6 +1,6 @@
 import createMarkdownIt from 'markdown-it'
 import { codeToHtml, createHighlighter } from 'shiki'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import createMarkdownItAsync from '../src/'
 
 const fixture = `
@@ -54,5 +54,22 @@ describe('markdown-it-async', async () => {
     })
 
     expect(expectedResult).toEqual(await mda.renderAsync(fixture))
+  })
+
+  it('warn', () => {
+    const mda = createMarkdownItAsync({
+      warnOnSyncRender: true,
+    })
+
+    const spy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {})
+
+    mda.render(fixture)
+
+    expect.soft(spy)
+      .toHaveBeenCalledWith('[markdown-it-async] Please use `md.renderAsync` instead of `md.render`')
+
+    spy.mockRestore()
   })
 })

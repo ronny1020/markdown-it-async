@@ -20,6 +20,13 @@ export interface MarkdownItAsyncOptions extends Omit<Options, 'highlight'> {
    * @default null
    */
   highlight?: ((str: string, lang: string, attrs: string) => string | Promise<string>) | null | undefined
+
+  /**
+   * Emit warning when calling `md.render` instead of `md.renderAsync`.
+   *
+   * @default false
+   */
+  warnOnSyncRender?: boolean
 }
 
 export type { MarkdownItAsyncOptions as Options }
@@ -58,9 +65,16 @@ export class MarkdownItAsync extends MarkdownIt {
     return super.use(plugin, ...params)
   }
 
+  render(src: string, env?: any): string {
+    if ((this.options as MarkdownItAsyncOptions).warnOnSyncRender) {
+      console.warn('[markdown-it-async] Please use `md.renderAsync` instead of `md.render`')
+    }
+    return super.render(src, env)
+  }
+
   async renderAsync(src: string, env?: any): Promise<string> {
     this.options.highlight = wrapHightlight(this.options.highlight, this.placeholderMap)
-    const result = this.render(src, env)
+    const result = super.render(src, env)
     return replaceAsync(result, placeholderRe, async (match, id) => {
       if (!this.placeholderMap.has(id))
         throw new Error(`Unknown highlight placeholder id: ${id}`)

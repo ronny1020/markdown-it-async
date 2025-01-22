@@ -26,6 +26,18 @@ const md = MarkdownItAsync({
 const html = await md.renderAsync(markdown)
 ```
 
+## Opt-in Warning
+
+If you integrate this package into your project, and want to make sure you have every usage of `md.render` migrated to `md.renderAsync`, you can enable the `warnOnSyncRender` option.
+
+```ts
+const md = MarkdownItAsync({
+  warnOnSyncRender: true
+})
+
+md.render('Hello') // This will throw a conole warning
+```
+
 ## How it works?
 
 This package is a thin wrapper around `markdown-it` to support async highlight function. It uses [the approach suggested in `markdown-it`'s docs](https://github.com/markdown-it/markdown-it/blob/master/docs/development.md#i-need-async-rule-how-to-do-it), by putting placeholders in sync mode and then replace them with async results.
