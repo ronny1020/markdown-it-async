@@ -31,8 +31,8 @@ export interface MarkdownItAsyncOptions extends Omit<Options, 'highlight'> {
 
 export type { MarkdownItAsyncOptions as Options }
 
-const placeholder = (id: string): string => `<pre>::markdown-it-async::${id}::</pre>`
-const placeholderRe = /<pre>::markdown-it-async::(\w+)::<\/pre>/g
+const placeholder = (id: string, code: string): string => `<pre><!--::markdown-it-async::${id}::--><code>${code}</code></pre>`
+const placeholderRe = /<pre><!--::markdown-it-async::(\w+)::--><code>[\s\S]*?<\/code><\/pre>/g
 
 function randStr(): string {
   return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
@@ -141,7 +141,7 @@ function wrapHightlight(highlight: MarkdownItAsyncOptions['highlight'], map: Mar
       return promise
     const id = randStr()
     map.set(id, [promise, str, lang, attrs])
-    return placeholder(id)
+    return placeholder(id, str)
   }
 
   wrappedSet.add(wrapped)
