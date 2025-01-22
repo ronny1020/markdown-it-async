@@ -8,6 +8,8 @@
 
 Enhance [`markdown-it`](https://github.com/markdown-it/markdown-it) to support **async** highlight function.
 
+This package is a wrapper on top of `markdown-it` instead of a fork. Updates from `markdown-it` will be reflected without as transient dependencies.
+
 ## Usage
 
 ```ts
@@ -20,6 +22,7 @@ const md = MarkdownItAsync({
   }
 })
 
+// Note you need to use `renderAsync` instead of `render`
 const html = await md.renderAsync(markdown)
 ```
 
