@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.4.2",
   "packageManager": "pnpm@9.15.4",
-  "description": "_description_",
+  "description": "Enhance markdown-it to support async highlight function.",
   "author": "Anthony Fu <anthonyfu117@hotmail.com>",
   "license": "MIT",
   "funding": "https://github.com/sponsors/antfu",
@@ -17,14 +17,13 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
     }
   },
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.mts",
   "typesVersions": {
     "*": {
       "*": [

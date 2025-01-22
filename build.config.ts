@@ -8,9 +8,6 @@ export default defineBuildConfig({
   ],
   declaration: true,
   clean: true,
-  rollup: {
-    emitCJS: true,
-  },
   hooks: {
     'build:done': async () => {
       for (const file of await glob('./dist/*.d.{cts,mts,ts}')) {
