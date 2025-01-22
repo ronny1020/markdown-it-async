@@ -128,6 +128,15 @@ type NotNull<T> = T extends null | undefined ? never : T
 
 const wrappedSet = new WeakSet<NotNull<Options['highlight']>>()
 
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 function wrapHightlight(highlight: MarkdownItAsyncOptions['highlight'], map: MarkdownItAsyncPlaceholderMap): Options['highlight'] {
   if (!highlight)
     return undefined
@@ -141,7 +150,11 @@ function wrapHightlight(highlight: MarkdownItAsyncOptions['highlight'], map: Mar
       return promise
     const id = randStr()
     map.set(id, [promise, str, lang, attrs])
-    return placeholder(id, str)
+    let code = str
+    if (code.endsWith('\n'))
+      code = code.slice(0, -1)
+    code = escapeHtml(code)
+    return placeholder(id, code)
   }
 
   wrappedSet.add(wrapped)
