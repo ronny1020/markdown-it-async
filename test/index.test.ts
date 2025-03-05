@@ -1,7 +1,7 @@
 import createMarkdownIt from 'markdown-it'
 import { codeToHtml, createHighlighter } from 'shiki'
 import { describe, expect, it, vi } from 'vitest'
-import createMarkdownItAsync from '../src/'
+import createMarkdownItAsync from '../src'
 
 const fixture = `
 # Hello

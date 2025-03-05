@@ -82,7 +82,7 @@ export class MarkdownItAsync extends MarkdownIt {
     )
   }
 
-  async rendererRenderAsync(tokens: Token[], options: Options, env: any): Promise<string> {
+  async rendererRenderAsync(tokens: Token[], options: Options = this.options, env?: any): Promise<string> {
     this.options.highlight = wrapHightlight(this.options.highlight, this.placeholderMap)
     this.disableWarn = true
     const result = this.renderer.render(tokens, options, env)
