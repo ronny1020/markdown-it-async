@@ -5,6 +5,8 @@ import type {
   Options,
   PresetName,
 } from 'markdown-it'
+import type { Renderer as MarkdownItRender, Token } from 'markdown-it/index.js'
+import type Renderer from 'markdown-it/lib/renderer.mjs'
 import MarkdownIt from 'markdown-it'
 
 export type PluginSimple = ((md: MarkdownItAsync) => void)
@@ -40,7 +42,20 @@ function randStr(): string {
 
 export type MarkdownItAsyncPlaceholderMap = Map<string, [promise: Promise<string>, str: string, lang: string, attrs: string]>
 
+type AwaitedFunction<T extends (...args: any[]) => any> = T | ((...args: Parameters<T>) => Promise<ReturnType<T>>)
+
+ type RenderRuleAsync = AwaitedFunction<MarkdownItRender.RenderRule>
+
+interface RendererAsync extends Renderer {
+  asyncRules: Partial<Record<keyof MarkdownItRender.RenderRuleRecord, RenderRuleAsync>>
+
+  renderInlineAsync: (this: RendererAsync, tokens: Token[], options: Options, env?: any) => Promise<string>
+
+  renderAsync: (this: RendererAsync, tokens: Token[], options: Options, env?: any) => Promise<string>
+}
+
 export class MarkdownItAsync extends MarkdownIt {
+  declare renderer: RendererAsync
   placeholderMap: MarkdownItAsyncPlaceholderMap
   private disableWarn = false
 
@@ -53,6 +68,48 @@ export class MarkdownItAsync extends MarkdownIt {
       options.highlight = wrapHightlight(options.highlight, map)
     super(...args as [])
     this.placeholderMap = map
+    this.renderer.asyncRules = {}
+
+    this.renderer.renderInlineAsync = async function (this: RendererAsync, tokens: Token[], options: Options, env?: any): Promise<string> {
+      const codes = await Promise.all(
+        tokens.map(async (token, i) => {
+          const type = token.type
+
+          const rule = this.asyncRules[type] ?? this.rules[type]
+
+          if (typeof rule !== 'undefined') {
+            return rule(tokens, i, options, env, this)
+          }
+          else {
+            return this.renderToken(tokens, i, options)
+          }
+        }),
+      )
+
+      return codes.join('')
+    }
+
+    this.renderer.renderAsync = async function (this: RendererAsync, tokens: Token[], options: Options, env?: any): Promise<string> {
+      const codes = await Promise.all(
+        tokens.map(async (token, i) => {
+          const type = token.type
+
+          const rule = this.asyncRules[type] ?? this.rules[type]
+
+          if (type === 'inline') {
+            return this.renderInline(token.children ?? [], options, env)
+          }
+          else if (typeof rule !== 'undefined') {
+            return rule(tokens, i, options, env, this)
+          }
+          else {
+            return this.renderToken(tokens, i, options)
+          }
+        }),
+      )
+
+      return codes.join('')
+    }
   }
 
   use(plugin: PluginSimple): this
@@ -76,7 +133,7 @@ export class MarkdownItAsync extends MarkdownIt {
   async renderAsync(src: string, env?: any): Promise<string> {
     this.options.highlight = wrapHightlight(this.options.highlight, this.placeholderMap)
     this.disableWarn = true
-    const result = this.render(src, env)
+    const result = await this.renderer.renderAsync(this.parse(src, env), this.options, env)
     this.disableWarn = false
     return replaceAsync(result, placeholderRe, async (match, id) => {
       if (!this.placeholderMap.has(id))

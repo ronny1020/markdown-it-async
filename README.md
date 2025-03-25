@@ -22,6 +22,11 @@ const md = MarkdownItAsync({
   }
 })
 
+// Optional, use the custom async rules
+md.renderer.asyncRules.rule_key = async () => {
+  // Your async rule
+}
+
 // Note you need to use `renderAsync` instead of `render`
 const html = await md.renderAsync(markdown)
 ```

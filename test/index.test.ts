@@ -72,4 +72,31 @@ describe('markdown-it-async', async () => {
 
     spy.mockRestore()
   })
+
+  it('async rules', async () => {
+    const mda = createMarkdownItAsync({
+      async highlight(str, lang) {
+        return await codeToHtml(str, {
+          lang,
+          theme: 'vitesse-light',
+        })
+      },
+    })
+
+    const mock = vi.fn()
+
+    Object.entries(mda.renderer.rules).forEach(([key, rule]) => {
+      if (typeof rule === 'function') {
+        mda.renderer.asyncRules[key] = async (tokens, index, options, env?: any) => {
+          await new Promise(resolve => setTimeout(resolve, 10))
+          mock()
+          return rule(tokens, index, options, env, mda.renderer)
+        }
+      }
+    })
+
+    expect(expectedResult)
+      .toEqual(await mda.renderAsync(fixture))
+    expect(mock).toHaveBeenCalled()
+  })
 })
