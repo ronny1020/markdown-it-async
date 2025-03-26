@@ -97,7 +97,7 @@ export class MarkdownItAsync extends MarkdownIt {
           const rule = this.asyncRules[type] ?? this.rules[type]
 
           if (type === 'inline') {
-            return this.renderInline(token.children ?? [], options, env)
+            return this.renderInlineAsync(token.children ?? [], options, env)
           }
           else if (typeof rule !== 'undefined') {
             return rule(tokens, i, options, env, this)
